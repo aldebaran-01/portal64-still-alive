@@ -1,5 +1,7 @@
 # Portal64: Still Alive
 
+This fork may or may not be capable of being built and ran at this moment in time.
+
 A demake *(remake for an older platform)* of Portal for the Nintendo 64.
 Originally created by [James Lambert](https://github.com/lambertjamesd).
 
