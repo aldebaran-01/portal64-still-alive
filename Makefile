@@ -19,8 +19,15 @@ $(SKELATOOL64):
 
 	@$(MAKE) -C skelatool64
 
+# Use tag name if the current commit is tagged, otherwise use commit hash
+# If not in a git repo, fall back to exported version
+GAME_VERSION		:=  $(shell \
+	(git describe --tags HEAD 2>/dev/null || cat version.txt) | \
+	awk -F '-' '{print (NF >= 3 ? substr($$3, 2) : $$1)}' \
+)
+
 OPTIMIZER		:= -Os
-LCDEFS			:= -DDEBUG -g -Werror -Wall
+LCDEFS			:= -DDEBUG -DGAME_VERSION=\"$(GAME_VERSION)\" -g -Werror -Wall
 N64LIB			:= -lultra_rom
 
 ifeq ($(PORTAL64_WITH_DEBUGGER),1)
@@ -133,6 +140,15 @@ spanish_audio: vpk/portal_sound_vo_spanish_dir.vpk vpk/portal_sound_vo_spanish_0
 	cd assets/locales/es/sound/vo/aperture_ai/; ls | xargs -I {} mv {} es_{}
 
 buildgame: $(BASE_TARGET_NAME).z64
+
+# Allow targets to depend on the GAME_VERSION variable via a file.
+# Update the file only when it differs from the variable (triggers rebuild).
+.PHONY: gameversion
+build/version.txt: gameversion
+ifneq ($(shell cat build/version.txt 2>/dev/null), $(GAME_VERSION))
+	@mkdir -p $(@D)
+	@echo -n $(GAME_VERSION) > $@
+endif
 
 include $(COMMONRULES)
 
@@ -363,7 +379,7 @@ build/src/menu/controls.o: build/assets/materials/ui.h build/src/audio/clips.h b
 build/src/menu/game_menu.o: build/src/audio/clips.h build/assets/materials/ui.h build/assets/materials/images.h build/assets/test_chambers/test_chamber_00/test_chamber_00.h
 build/src/menu/gameplay_options.o: build/assets/materials/ui.h build/src/audio/clips.h
 build/src/menu/joystick_options.o: build/assets/materials/ui.h build/src/audio/clips.h
-build/src/menu/landing_menu.o: build/assets/materials/ui.h build/src/audio/clips.h
+build/src/menu/landing_menu.o: build/assets/materials/ui.h build/src/audio/clips.h build/version.txt
 build/src/menu/load_game.o: build/assets/materials/ui.h build/src/audio/clips.h build/src/audio/subtitles.h
 build/src/menu/main_menu.o: build/src/audio/clips.h build/assets/materials/ui.h build/assets/materials/images.h build/assets/test_chambers/test_chamber_00/test_chamber_00.h
 build/src/menu/new_game_menu.o: build/src/audio/clips.h build/assets/materials/ui.h build/assets/materials/images.h build/src/audio/subtitles.h build/assets/test_chambers/test_chamber_00/test_chamber_00.h
