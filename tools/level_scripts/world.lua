@@ -22,13 +22,11 @@ for doorway_index, doorway in pairs(sk_scene.nodes_for_type('@doorway')) do
     local room_a = room_export.node_nearest_room_index(doorway.node, nil)
     local room_b, room_b_bb = room_export.node_nearest_room_index(doorway.node, room_a)
 
-    if room_b_block then
-        local room_b_center = room_b_bb:lerp(0.5)
+    local room_b_center = room_b_bb:lerp(0.5)
 
-        -- check if the doorway is facing room A
-        if (room_b_center - quad.corner):dot(quad.plane.normal > 0) then
-            room_a, room_b = room_b, room_a
-        end
+    -- Check if the doorway is facing room A
+    if (room_b_center - quad.corner):dot(quad.plane.normal) > 0 then
+        room_a, room_b = room_b, room_a
     end
 
     table.insert(room_doorways[room_a + 1], doorway_index - 1)
@@ -37,6 +35,13 @@ for doorway_index, doorway in pairs(sk_scene.nodes_for_type('@doorway')) do
     quad.corner = quad.corner + (-0.5 * quad.edgeA + -0.5 * quad.edgeB)
     quad.edgeALength = quad.edgeALength + 1.0
     quad.edgeBLength = quad.edgeBLength + 1.0
+
+    for _, doorway in pairs(doorways) do
+        if (doorway[2] == room_a and doorway[3] == room_b) or
+           (doorway[2] == room_b and doorway[3] == room_a) then
+            error('At most one doorway can connect two rooms. Found multiple doorways for rooms ' .. room_a .. ' and ' .. room_b .. '.')
+        end
+    end
 
     table.insert(doorways, {
         quad,
@@ -123,6 +128,7 @@ local function generate_room(room_index)
         room_export.room_bb[room_index] or sk_math.box3(),
         sk_definition_writer.reference_to(room_doorways[room_index], 1),
         #room_doorways[room_index],
+        room_export.room_non_visibility[room_index]
     }
 end
 
