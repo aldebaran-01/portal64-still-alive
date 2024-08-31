@@ -1,5 +1,6 @@
 # Portal64: Still Alive
 
+Attempting to port to libdragon and tiny3d.
 This fork may or may not be capable of being built and ran at this moment in time.
 
 A demake *(remake for an older platform)* of Portal for the Nintendo 64.
